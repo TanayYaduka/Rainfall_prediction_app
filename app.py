@@ -4,7 +4,7 @@ import pandas as pd
 import pickle
 
 # Load trained model
-with open("model.pkl", "rb") as f:
+with open("rainfall_rf_model.pkl", "rb") as f:
     model = pickle.load(f)
 
 st.set_page_config(page_title="Rainfall Prediction", layout="centered")
