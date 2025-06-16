@@ -1,44 +1,34 @@
+# app.py
 import streamlit as st
-import numpy as np
 import pandas as pd
-import pickle
+import joblib
 
-# Load trained model
-with open("rainfall_rf_model.pkl", "rb") as f:
-    model = pickle.load(f)
+# Load model and preprocessors
+model = joblib.load("rainfall_rf_model.pkl")
+label_encoders = joblib.load("label_encoders.pkl")
+imputer = joblib.load("imputer.pkl")
 
-st.set_page_config(page_title="Rainfall Prediction", layout="centered")
-st.title("🌧️ Rainfall Prediction App")
-st.markdown("Enter weather features to predict whether it will rain tomorrow.")
+st.title("Rainfall Prediction App 🌧️")
 
-# Sidebar input
-st.sidebar.header("Enter Weather Data")
+# Input fields
+user_input = {}
+features = ['MinTemp', 'MaxTemp', 'Rainfall', 'WindGustSpeed', 'WindSpeed9am',
+            'WindSpeed3pm', 'Humidity9am', 'Humidity3pm', 'Pressure9am',
+            'Pressure3pm', 'Temp9am', 'Temp3pm']
+for feat in features:
+    user_input[feat] = st.number_input(f"{feat}", value=0.0)
 
-def user_input():
-    sunshine = st.sidebar.slider("Sunshine (hours)", 0.0, 15.0, 7.5)
-    humidity_9am = st.sidebar.slider("Humidity at 9am (%)", 0.0, 100.0, 70.0)
-    cloud_3pm = st.sidebar.slider("Cloud at 3pm (0–8 oktas)", 0.0, 8.0, 4.0)
-    
-    data = {
-        'Sunshine': sunshine,
-        'Humidity9am': humidity_9am,
-        'Cloud3pm': cloud_3pm
-    }
-    return pd.DataFrame([data])
+# Categorical inputs
+cat_features = ['WindGustDir', 'WindDir9am', 'WindDir3pm', 'RainToday']
+for cat in cat_features:
+    options = label_encoders[cat].classes_.tolist()
+    user_val = st.selectbox(cat, options)
+    user_input[cat] = label_encoders[cat].transform([user_val])[0]
 
-input_df = user_input()
-
-# Show input
-st.subheader("Input Features")
-st.write(input_df)
-
-# Make prediction
-prediction = model.predict(input_df)[0]
-proba = model.predict_proba(input_df)[0][1]
-
-# Show result
-st.subheader("Prediction")
-st.write("🌧️ Rain Tomorrow" if prediction == 1 else "☀️ No Rain Tomorrow")
-
-st.subheader("Confidence")
-st.write(f"Probability of Rain: {proba:.2%}")
+# Prediction
+if st.button("Predict Rain Tomorrow"):
+    input_df = pd.DataFrame([user_input])
+    input_df = imputer.transform(input_df)
+    pred = model.predict(input_df)[0]
+    result = "Yes 🌧️" if pred == 1 else "No ☀️"
+    st.success(f"Prediction: It will rain tomorrow? {result}")
