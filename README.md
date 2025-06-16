@@ -88,8 +88,7 @@ Ensure this file is publicly accessible with "Anyone with the link can view" per
 ## 👤 Author
 
 **Tanay Yaduka**  
-Machine Learning Enthusiast  
-[LinkedIn](https://www.linkedin.com) | [GitHub](https://github.com/your-username)
+
 
 ---
 
